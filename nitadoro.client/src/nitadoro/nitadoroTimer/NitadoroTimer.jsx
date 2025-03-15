@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Timer from './Timer';
 
-function Nitadoro() {
+function NitadoroTimer() {
 
     // States the timer can be in
     const state = {
@@ -11,17 +11,25 @@ function Nitadoro() {
         LIMBO: "limbo",
     }
 
+    // Text for multibutton
+    const multiButtonOpt = {
+        START: "Start",
+        RESUME: "Resume",
+        PAUSE: "Pause",
+    }
+
     // Variables
-    const [timerState, setTimerState] = useState(state.LIMBO);
-    const [shortBreak, setShortBreak] = useState(5);
-    const [longBreak, setLongBreak] = useState(10);
-    const [nitadoro, setNitadoro] = useState(15);
+    const timerState = useRef(state.LIMBO);
+    const shortBreak = useRef(300);
+    const longBreak = useRef(1200);
+    const nitadoro = useRef(1500);
     const breakCount = useRef(0);
     const hadBreakYet = useRef(true);
     const previousTimerState = useRef(null);
     const nextTimerState = useRef(null);
-    const [time, setTime] = useState(null);
+    const [time, setTime] = useState(0);
     const timer = useRef(new Timer(ring, setTime));
+    const [multiButton, setMultiButton] = useState(multiButtonOpt.START);
 
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
@@ -29,15 +37,16 @@ function Nitadoro() {
     useEffect(() => {
         configNextTimer();
     }, []);
+    
 
     /** 
      * Pauses the timer 
      */
     function pauseTimer() {
         try {
-            previousTimerState.current = timerState;
-            timer.current.pauseTimer();
-            setTimerState(state.PAUSED);
+            previousTimerState.current = timerState.current;
+            timer.current.pause();
+            timerState.current = state.PAUSED;
         } catch (error) {
             console.log(error.message);
         }
@@ -48,8 +57,8 @@ function Nitadoro() {
      */
     function resumeTimer() {
         try {
-            timer.current.resumeTimer();
-            setTimerState(previousTimerState.current)
+            timer.current.resume();
+            timerState.current = previousTimerState.current;
         } catch (error) {
             console.log(error.message);
         }
@@ -59,11 +68,12 @@ function Nitadoro() {
      * Resets the timer
      */
     function resetTimer() {
-        timer.current = new Timer(ring, setTime);
+        timer.current.reset();
         breakCount.current = 0;
         hadBreakYet.current = true;
         previousTimerState.current = null;
-        setTimerState(state.NOT_STARTED);
+        timerState.current = state.LIMBO;
+        setMultiButton(multiButtonOpt.START);
         configNextTimer();
     }
 
@@ -73,18 +83,18 @@ function Nitadoro() {
      */
     function startNextTimer() {
         try {
-            if (timer.current.counting) {
+            if (timer.current.isCounting) {
                 throw new Error("Timer is already running")
             }
             if (nextTimerState.current === state.WORKING) {
-                setTimerState(state.WORKING)
+                timerState.current = state.WORKING;
                 hadBreakYet.current = false;
-                timer.current.startTimer();;
+                timer.current.start();;
             } else if (nextTimerState.current === state.BREAKING) {
-                setTimerState(state.BREAKING);
+                timerState.current = state.BREAKING;
                 hadBreakYet.current = true;
                 breakCount.current++;
-                timer.current.startTimer();
+                timer.current.start();
             }
         } catch (error) {
             console.log(error.message);
@@ -100,14 +110,14 @@ function Nitadoro() {
      */
     function configNextTimer() {
         if (hadBreakYet.current) {
-            timer.current.time = nitadoro;
+            timer.current.time = nitadoro.current;
             nextTimerState.current = state.WORKING;
         } else if (!hadBreakYet.current) {
             if (breakCount.current < 3) {
-                timer.current.time = shortBreak;
+                timer.current.time = shortBreak.current;
                 nextTimerState.current = state.BREAKING;
             } else {
-                timer.current.time = longBreak;
+                timer.current.time = longBreak.current;
                 breakCount.current = 0;
                 nextTimerState.current = state.BREAKING;
             }
@@ -121,20 +131,39 @@ function Nitadoro() {
      */
     function ring() {
         alert("Timer done");
-        setTimerState(state.LIMBO)
+        timerState.current = state.LIMBO;
+        setMultiButton(multiButtonOpt.START);
         configNextTimer();
+    }
+
+    function handleMultiButton() {
+        switch(timerState.current) {
+            case state.BREAKING:
+                pauseTimer();
+                setMultiButton(multiButtonOpt.RESUME);
+                break;
+            case state.LIMBO:
+                startNextTimer();
+                setMultiButton(multiButtonOpt.PAUSE);
+                break;
+            case state.PAUSED:
+                resumeTimer();
+                setMultiButton(multiButtonOpt.PAUSE);
+                break;
+            case state.WORKING:
+                pauseTimer();
+                setMultiButton(multiButtonOpt.RESUME);
+                break;
+        }
     }
 
     return (
         <div className="nitadoro">
-            <p>{timerState}</p>
             <p>{minutes > 9 ? minutes : `0${minutes}`}:{seconds > 9 ? seconds : `0${seconds}`}</p>
-            <button onClick={startNextTimer}>start</button>
-            <button onClick={pauseTimer}>pause</button>
-            <button onClick={resumeTimer}>resume</button>
+            <button onClick={handleMultiButton}>{multiButton}</button>
             <button onClick={resetTimer}>reset</button>
         </div>
     )
 }
 
-export default Nitadoro;
+export default NitadoroTimer;
