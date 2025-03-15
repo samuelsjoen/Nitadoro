@@ -4,11 +4,16 @@ import ToDoBlock from "./ToDoBlock"
 
 function toDoBoard() {
     const [toDos, setToDos] = useState([]);
-    const [input, setInput] = useState();
-    
+    const [input, setInput] = useState("");
+
     function addNewToDo() {
-        const toDo = new ToDo(crypto.randomUUID(), input);
-        setToDos([...toDos, toDo])
+        if (input !== "") {
+            const toDo = new ToDo(crypto.randomUUID(), input);
+            setInput("");
+            setToDos([...toDos, toDo])
+        } else {
+            console.log("Unable to add new to do. Input field is empty.")
+        }
     }
 
     function removeToDo(toDo) {
@@ -38,7 +43,7 @@ function toDoBoard() {
             <button onClick={addNewToDo}>Add to do</button>
             {toDos.map(toDo => (
                 <ToDoBlock
-                    key = {toDo.id}
+                    key={toDo.id}
                     toDo={toDo}
                     remove={removeToDo}
                 />
