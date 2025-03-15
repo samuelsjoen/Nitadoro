@@ -37,7 +37,6 @@ function NitadoroTimer() {
     useEffect(() => {
         configNextTimer();
     }, []);
-    
 
     /** 
      * Pauses the timer 

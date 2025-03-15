@@ -1,14 +1,31 @@
-import { useState } from 'react';
-import ToDo from './ToDo'
+import { useEffect, useState } from 'react';
 import ToDoBlock from "./ToDoBlock"
 
 function toDoBoard() {
-    const [toDos, setToDos] = useState([]);
+    const [toDos, setToDos] = useState(() => {
+        const prevToDos = localStorage.getItem("toDoBoard");
+        return prevToDos ? JSON.parse(prevToDos) : [];
+        
+    });
     const [input, setInput] = useState("");
+
+    useEffect(() => {
+        localStorage.setItem("toDoBoard", JSON.stringify(toDos));
+    }, [toDos]);
+
+    useEffect(() => {
+        const prevToDos = localStorage.getItem("toDoBoard");
+        if (prevToDos) {
+            setToDos(JSON.parse(prevToDos));
+        }
+    }, []);
 
     function addNewToDo() {
         if (input !== "") {
-            const toDo = new ToDo(crypto.randomUUID(), input);
+            const toDo = {
+                id: crypto.randomUUID(),
+                text: input
+            };
             setInput("");
             setToDos([...toDos, toDo])
         } else {
