@@ -14,7 +14,7 @@ class Timer {
     }
 
     /** Starts the timer */
-    startTimer() {
+    start() {
         if (this.counting) {
             throw new Error("Timer already started");
         }
@@ -38,7 +38,7 @@ class Timer {
      * Pauses the timer if running
      * @throws {Error} if timer is currently not running
      */
-    pauseTimer() {
+    pause() {
         if (this.counting && this.timerCount != 0) {
             clearInterval(this.timerId);
             this.counting = false;
@@ -51,14 +51,22 @@ class Timer {
      * Resumes the timer if it's paused
      * @throws {Error} if timer is already running
      */
-    resumeTimer() {
+    resume() {
         if (!this.counting && this.timerCount > 0) {
-            this.startTimer();
+            this.start();
         } else {
             throw new Error("Unable to resume timer, timer already running");
         }
     }
 
+    reset() {
+        if (this.counting) {
+            clearInterval(this.timerId);
+        }
+        this.counting = false;
+        this.timerCount = null;
+        this.timerId = null;
+    }
     /**
      * @returns the current time of the timer
      */
@@ -77,7 +85,7 @@ class Timer {
     /**
      * @returns a bool describing wether the timer is running or not
      */
-    get counting() {
+    get isCounting() {
         return this.counting;
     }
 }
