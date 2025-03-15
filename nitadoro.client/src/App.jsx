@@ -1,9 +1,13 @@
 import './App.css';
-import Nitadoro from './Nitadoro';
+import NitadoroTimer from './nitadoro/nitadoroTimer/NitadoroTimer';
+import ToDoBoard from './nitadoro/toDo/ToDoBoard';
 
 function App() {
     return (
-        <Nitadoro/>
+        <div className="app">
+            <NitadoroTimer />
+            <ToDoBoard />
+        </div>
     )
 }
 
